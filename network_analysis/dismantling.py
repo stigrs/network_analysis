@@ -38,7 +38,6 @@ def plot_attack_results(
     )
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
-    plt.xticks(np.arange(0, max(nattacks) + 1, 1.0))
 
     box = ax.get_position()
     ax.set_position([box.x0, box.y0 + box.height * 0.1, box.width, box.height * 0.9])
@@ -48,6 +47,8 @@ def plot_attack_results(
 
     if filename:
         plt.savefig(filename, dpi=dpi)
+
+    return ax
 
 
 class NetworkDismantling:
@@ -87,12 +88,13 @@ class NetworkDismantling:
 
         for _ in range(nattacks):
             bc = centrality_method(graph_attacked, weight)
-            graph_attacked.remove_node(bc[0][0])
-            nodes_attacked.append(bc[0][0])
+            node = list(bc.keys())[0]
+            graph_attacked.remove_node(node)
+            nodes_attacked.append(node)
             lcc.append(network.largest_connected_component(graph_attacked))
             slcc.append(network.second_largest_connected_component(graph_attacked))
             eff.append(network.global_efficiency(graph_attacked, weight))
-            centrality.append(bc[0][1])
+            centrality.append(list(bc.values())[0])
 
         return graph_attacked, nodes_attacked, lcc, slcc, eff, centrality
 
@@ -129,12 +131,13 @@ class NetworkDismantling:
 
         for _ in range(nattacks):
             bc = centrality_method(graph_attacked, weight)
-            graph_attacked.remove_edge(bc[0][0][0], bc[0][0][1])
-            edges_attacked.append(bc[0][0])
+            edge = list(bc.keys())[0]
+            graph_attacked.remove_edge(edge[0], edge[1])
+            edges_attacked.append(edge)
             lcc.append(network.largest_connected_component(graph_attacked))
             slcc.append(network.second_largest_connected_component(graph_attacked))
             eff.append(network.global_efficiency(graph_attacked, weight))
-            centrality.append(bc[0][1])
+            centrality.append(list(bc.values())[0])
 
         return graph_attacked, edges_attacked, lcc, slcc, eff, centrality
 

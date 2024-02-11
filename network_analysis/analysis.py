@@ -9,42 +9,66 @@
 import networkx as nx
 import pandas as pd
 import operator
+import pathlib
 import matplotlib.pyplot as plt
 
 
 def degree_centrality(G, weight=None):
     """Compute degree centrality for the nodes."""
-    degree = nx.degree_centrality(G)
-    degree = sorted(degree.items(), key=operator.itemgetter(1), reverse=True)
-    return degree
+    centrality = list(nx.degree_centrality(G).values())
+    centrality = {n: d for n, d in zip(G.nodes, centrality)}
+    centrality = dict(
+        sorted(centrality.items(), key=operator.itemgetter(1), reverse=True)
+    )
+    return centrality
 
 
 def eigenvector_centrality(G, weight=None):
     """Compute eigenvector centrality for the nodes."""
-    centrality = nx.eigenvector_centrality(G, weight=weight)
-    centrality = sorted(centrality.items(), key=operator.itemgetter(1), reverse=True)
+    centrality = list(nx.eigenvector_centrality(G, weight=weight).values())
+    centrality = {n: d for n, d in zip(G.nodes, centrality)}
+    centrality = dict(
+        sorted(centrality.items(), key=operator.itemgetter(1), reverse=True)
+    )
     return centrality
 
 
 def betweenness_centrality(G, weight=None):
     """Compute betweenness centrality for the nodes."""
-    betweenness = nx.betweenness_centrality(G, weight=weight)
-    betweenness = sorted(betweenness.items(), key=operator.itemgetter(1), reverse=True)
-    return betweenness
+    centrality = list(nx.betweenness_centrality(G, weight=weight).values())
+    centrality = {n: d for n, d in zip(G.nodes, centrality)}
+    centrality = dict(
+        sorted(centrality.items(), key=operator.itemgetter(1), reverse=True)
+    )
+    return centrality
 
 
 def edge_betweenness_centrality(G, weight=None):
     """Compute betweenness centrality for the edges."""
-    betweenness = nx.edge_betweenness_centrality(G, weight=weight)
-    betweenness = sorted(betweenness.items(), key=operator.itemgetter(1), reverse=True)
-    return betweenness
+    centrality = list(nx.edge_betweenness_centrality(G, weight=weight).values())
+    centrality = {n: d for n, d in zip(G.edges, centrality)}
+    centrality = dict(
+        sorted(centrality.items(), key=operator.itemgetter(1), reverse=True)
+    )
+    return centrality
 
 
 def closeness_centrality(G, weight=None):
     """Compute closeness centrality for the nodes."""
-    closeness = nx.closeness_centrality(G, distance=weight)
-    closeness = sorted(closeness.items(), key=operator.itemgetter(1), reverse=True)
-    return closeness
+    centrality = list(nx.closeness_centrality(G, distance=weight).values())
+    centrality = {n: d for n, d in zip(G.nodes, centrality)}
+    centrality = dict(
+        sorted(centrality.items(), key=operator.itemgetter(1), reverse=True)
+    )
+    return centrality
+
+
+def pagerank(G, weight=None):
+    """Compute PageRank for the nodes."""
+    rank = list(nx.pagerank(G, weight=weight).values())
+    rank = {n: d for n, d in zip(G.nodes, rank)}
+    rank = dict(sorted(rank.items(), key=operator.itemgetter(1), reverse=True))
+    return rank
 
 
 def articulation_points(G):
@@ -138,9 +162,14 @@ class NetworkAnalysis:
 
     def read_adjacency(self, filename, index_col=0, create_using=nx.Graph):
         """Load network from CSV file with interdependency matrix."""
-        df = pd.read_csv(filename, index_col=index_col)
-        # need to make sure dependency is interpreted as j --> i
-        self.graph = nx.from_pandas_adjacency(df.transpose(), create_using=create_using)
+        if pathlib.Path(filename).suffix == ".csv":
+            df = pd.read_csv(filename, index_col=index_col)
+            # need to make sure dependency is interpreted as j --> i
+            self.graph = nx.from_pandas_adjacency(
+                df.transpose(), create_using=create_using
+            )
+        else:
+            self.graph = None
 
     def degree_centrality(self):
         return degree_centrality(self.graph)
@@ -156,6 +185,9 @@ class NetworkAnalysis:
 
     def closeness_centrality(self, distance=None):
         return closeness_centrality(self.graph, weight=distance)
+
+    def pagerank(self, weight=None):
+        return pagerank(self.graph, weight=None)
 
     def articulation_points(self):
         return articulation_points(self.graph)
